@@ -1,0 +1,5 @@
+{
+  "name": "SWENCONNECT",
+  "description": "A comprehensive global shipping line service mapping application. Features service management, automated transshipment discovery, and an interactive D3 geospatial route finder.",
+  "requestFramePermissions": []
+}
