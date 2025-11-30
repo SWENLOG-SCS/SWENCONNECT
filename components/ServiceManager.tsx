@@ -195,7 +195,8 @@ const ServiceManager: React.FC<ServiceManagerProps> = ({
         name: quickPortName,
         code: quickPortCode,
         country: quickPortCountry,
-        coordinates: [parseFloat(quickPortLng), parseFloat(quickPortLat)] as [number, number]
+        coordinates: [parseFloat(quickPortLng), parseFloat(quickPortLat)] as [number, number],
+        type: 'SEAPORT' as const
     };
     onAddPort(newPort);
     setShowAddPortModal(false);

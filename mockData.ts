@@ -1,5 +1,5 @@
 
-import { Carrier, Port, Service, TransshipmentConnection, User, ActivityLog, SearchLog } from './types';
+import { Carrier, Port, Service, TransshipmentConnection, User, ActivityLog, SearchLog, InlandConnection } from './types';
 
 export const INITIAL_CARRIERS: Carrier[] = [
   { id: 'c1', name: 'Maersk Line', code: 'MSK', color: '#3b82f6', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e9/Maersk_Group_Logo.svg/1024px-Maersk_Group_Logo.svg.png' }, // Blue
@@ -12,38 +12,44 @@ export const INITIAL_CARRIERS: Carrier[] = [
 
 export const INITIAL_PORTS: Port[] = [
   // ASIA
-  { id: 'p1', name: 'Shanghai', code: 'CNSHA', country: 'China', coordinates: [121.4737, 31.2304] },
-  { id: 'p2', name: 'Singapore', code: 'SGSIN', country: 'Singapore', coordinates: [103.8198, 1.3521] },
-  { id: 'p6', name: 'Busan', code: 'KRPUS', country: 'South Korea', coordinates: [129.0756, 35.1796] },
-  { id: 'p9', name: 'Tokyo', code: 'JPTYO', country: 'Japan', coordinates: [139.6917, 35.6895] },
-  { id: 'p11', name: 'Ningbo', code: 'CNNBG', country: 'China', coordinates: [121.6186, 29.8683] },
-  { id: 'p12', name: 'Shenzhen', code: 'CNSZX', country: 'China', coordinates: [114.1095, 22.5431] },
-  { id: 'p13', name: 'Hong Kong', code: 'HKHKG', country: 'Hong Kong', coordinates: [114.1694, 22.3193] },
-  { id: 'p14', name: 'Port Klang', code: 'MYPKG', country: 'Malaysia', coordinates: [101.3928, 3.0000] },
-  { id: 'p24', name: 'Kaohsiung', code: 'TWKHH', country: 'Taiwan', coordinates: [120.3120, 22.6273] },
+  { id: 'p1', name: 'Shanghai', code: 'CNSHA', country: 'China', coordinates: [121.4737, 31.2304], type: 'SEAPORT' },
+  { id: 'p2', name: 'Singapore', code: 'SGSIN', country: 'Singapore', coordinates: [103.8198, 1.3521], type: 'SEAPORT' },
+  { id: 'p6', name: 'Busan', code: 'KRPUS', country: 'South Korea', coordinates: [129.0756, 35.1796], type: 'SEAPORT' },
+  { id: 'p9', name: 'Tokyo', code: 'JPTYO', country: 'Japan', coordinates: [139.6917, 35.6895], type: 'SEAPORT' },
+  { id: 'p11', name: 'Ningbo', code: 'CNNBG', country: 'China', coordinates: [121.6186, 29.8683], type: 'SEAPORT' },
+  { id: 'p12', name: 'Shenzhen', code: 'CNSZX', country: 'China', coordinates: [114.1095, 22.5431], type: 'SEAPORT' },
+  { id: 'p13', name: 'Hong Kong', code: 'HKHKG', country: 'Hong Kong', coordinates: [114.1694, 22.3193], type: 'SEAPORT' },
+  { id: 'p14', name: 'Port Klang', code: 'MYPKG', country: 'Malaysia', coordinates: [101.3928, 3.0000], type: 'SEAPORT' },
+  { id: 'p24', name: 'Kaohsiung', code: 'TWKHH', country: 'Taiwan', coordinates: [120.3120, 22.6273], type: 'SEAPORT' },
 
   // MIDDLE EAST
-  { id: 'p7', name: 'Jebel Ali', code: 'AEJEA', country: 'UAE', coordinates: [55.0273, 25.0228] },
+  { id: 'p7', name: 'Jebel Ali', code: 'AEJEA', country: 'UAE', coordinates: [55.0273, 25.0228], type: 'SEAPORT' },
 
   // EUROPE
-  { id: 'p3', name: 'Rotterdam', code: 'NLRTM', country: 'Netherlands', coordinates: [4.47917, 51.9225] },
-  { id: 'p5', name: 'Hamburg', code: 'DEHAM', country: 'Germany', coordinates: [9.9937, 53.5511] },
-  { id: 'p15', name: 'Antwerp', code: 'BEANR', country: 'Belgium', coordinates: [4.4025, 51.2194] },
-  { id: 'p16', name: 'Felixstowe', code: 'GBFXT', country: 'UK', coordinates: [1.3513, 51.9614] },
-  { id: 'p17', name: 'Le Havre', code: 'FRLEH', country: 'France', coordinates: [0.1079, 49.4944] },
-  { id: 'p20', name: 'Valencia', code: 'ESVLC', country: 'Spain', coordinates: [-0.3763, 39.4699] },
-  { id: 'p22', name: 'Barcelona', code: 'ESBCN', country: 'Spain', coordinates: [2.1734, 41.3851] },
+  { id: 'p3', name: 'Rotterdam', code: 'NLRTM', country: 'Netherlands', coordinates: [4.47917, 51.9225], type: 'SEAPORT' },
+  { id: 'p5', name: 'Hamburg', code: 'DEHAM', country: 'Germany', coordinates: [9.9937, 53.5511], type: 'SEAPORT' },
+  { id: 'p15', name: 'Antwerp', code: 'BEANR', country: 'Belgium', coordinates: [4.4025, 51.2194], type: 'SEAPORT' },
+  { id: 'p16', name: 'Felixstowe', code: 'GBFXT', country: 'UK', coordinates: [1.3513, 51.9614], type: 'SEAPORT' },
+  { id: 'p17', name: 'Le Havre', code: 'FRLEH', country: 'France', coordinates: [0.1079, 49.4944], type: 'SEAPORT' },
+  { id: 'p20', name: 'Valencia', code: 'ESVLC', country: 'Spain', coordinates: [-0.3763, 39.4699], type: 'SEAPORT' },
+  { id: 'p22', name: 'Barcelona', code: 'ESBCN', country: 'Spain', coordinates: [2.1734, 41.3851], type: 'SEAPORT' },
 
   // NORTH AMERICA
-  { id: 'p4', name: 'Los Angeles', code: 'USLAX', country: 'USA', coordinates: [-118.2437, 34.0522] },
-  { id: 'p8', name: 'New York', code: 'USNYC', country: 'USA', coordinates: [-74.006, 40.7128] },
-  { id: 'p18', name: 'Vancouver', code: 'CAVAN', country: 'Canada', coordinates: [-123.1207, 49.2827] },
-  { id: 'p19', name: 'Savannah', code: 'USSAV', country: 'USA', coordinates: [-81.0998, 32.0835] },
-  { id: 'p21', name: 'Oakland', code: 'USOAK', country: 'USA', coordinates: [-122.2711, 37.8044] },
-  { id: 'p23', name: 'Norfolk', code: 'USORF', country: 'USA', coordinates: [-76.2859, 36.8508] },
+  { id: 'p4', name: 'Los Angeles', code: 'USLAX', country: 'USA', coordinates: [-118.2437, 34.0522], type: 'SEAPORT' },
+  { id: 'p8', name: 'New York', code: 'USNYC', country: 'USA', coordinates: [-74.006, 40.7128], type: 'SEAPORT' },
+  { id: 'p18', name: 'Vancouver', code: 'CAVAN', country: 'Canada', coordinates: [-123.1207, 49.2827], type: 'SEAPORT' },
+  { id: 'p19', name: 'Savannah', code: 'USSAV', country: 'USA', coordinates: [-81.0998, 32.0835], type: 'SEAPORT' },
+  { id: 'p21', name: 'Oakland', code: 'USOAK', country: 'USA', coordinates: [-122.2711, 37.8044], type: 'SEAPORT' },
+  { id: 'p23', name: 'Norfolk', code: 'USORF', country: 'USA', coordinates: [-76.2859, 36.8508], type: 'SEAPORT' },
 
   // SOUTH AMERICA
-  { id: 'p10', name: 'Santos', code: 'BRSSZ', country: 'Brazil', coordinates: [-46.308, -23.961] },
+  { id: 'p10', name: 'Santos', code: 'BRSSZ', country: 'Brazil', coordinates: [-46.308, -23.961], type: 'SEAPORT' },
+
+  // --- INLAND HUBS ---
+  { id: 'p_chi', name: 'Chicago', code: 'USCHI', country: 'USA', coordinates: [-87.6298, 41.8781], type: 'INLAND' },
+  { id: 'p_muc', name: 'Munich', code: 'DEMUC', country: 'Germany', coordinates: [11.5820, 48.1351], type: 'INLAND' },
+  { id: 'p_yiw', name: 'Yiwu', code: 'CNYIW', country: 'China', coordinates: [120.0751, 29.3151], type: 'INLAND' },
+  { id: 'p_del', name: 'New Delhi', code: 'INDEL', country: 'India', coordinates: [77.2090, 28.6139], type: 'INLAND' },
 ];
 
 export const INITIAL_SERVICES: Service[] = [
@@ -155,59 +161,32 @@ export const INITIAL_SERVICES: Service[] = [
 ];
 
 export const INITIAL_CONNECTIONS: TransshipmentConnection[] = [
-  // 1. Maersk Connection at Rotterdam (AE1 -> AT1 is diff carrier but valid in our model if user sets it)
-  // Let's connect AE1 (Maersk) to SA1 (Maersk) at Rotterdam
-  {
-    id: 'tc1',
-    serviceAId: 's1', // AE1 (goes to RTM)
-    serviceBId: 's5', // SA1 (starts at RTM)
-    portId: 'p3',   // Rotterdam
-    isActive: true,
-  },
-  // 2. CMA Connection at Singapore (FAL1 <-> Others) - Not defined yet
-  // 3. FAL1 (CMA) -> AT1 (Hapag) at Rotterdam
-  {
-    id: 'tc2',
-    serviceAId: 's3', // FAL1
-    serviceBId: 's4', // AT1
-    portId: 'p3',   // RTM
-    isActive: true,
-  },
-  // 4. MSC Connection at Antwerp: AE2 -> AX1 (Hapag) - Diff carrier
-  {
-      id: 'tc3',
-      serviceAId: 's6', // AE2 (MSC) Ends at LEH/ANR
-      serviceBId: 's9', // AX1 (Hapag) Starts at ANR
-      portId: 'p15', // Antwerp
-      isActive: true
-  },
-  // 5. Maersk Connection at Singapore: AE1 -> MED1
-  {
-      id: 'tc4',
-      serviceAId: 's1', // AE1
-      serviceBId: 's8', // MED1
-      portId: 'p2', // Singapore
-      isActive: true
-  }
+  // 1. Maersk Connection at Rotterdam
+  { id: 'tc1', serviceAId: 's1', serviceBId: 's5', portId: 'p3', isActive: true },
+  // 2. FAL1 -> AT1 at Rotterdam
+  { id: 'tc2', serviceAId: 's3', serviceBId: 's4', portId: 'p3', isActive: true },
+  // 3. MSC Connection at Antwerp
+  { id: 'tc3', serviceAId: 's6', serviceBId: 's9', portId: 'p15', isActive: true },
+  // 4. Maersk Connection at Singapore
+  { id: 'tc4', serviceAId: 's1', serviceBId: 's8', portId: 'p2', isActive: true }
+];
+
+export const INITIAL_INLAND_CONNECTIONS: InlandConnection[] = [
+    // US Rail
+    { id: 'ic1', hubId: 'p_chi', portId: 'p8', mode: 'RAIL', transitTimeDays: 4 }, // Chicago <-> NYC
+    { id: 'ic2', hubId: 'p_chi', portId: 'p4', mode: 'RAIL', transitTimeDays: 5 }, // Chicago <-> LAX
+    { id: 'ic3', hubId: 'p_chi', portId: 'p23', mode: 'RAIL', transitTimeDays: 4 }, // Chicago <-> Norfolk
+    
+    // Europe Rail/Truck
+    { id: 'ic4', hubId: 'p_muc', portId: 'p5', mode: 'RAIL', transitTimeDays: 1 }, // Munich <-> Hamburg
+    { id: 'ic5', hubId: 'p_muc', portId: 'p3', mode: 'RAIL', transitTimeDays: 2 }, // Munich <-> Rotterdam
+    
+    // China Truck
+    { id: 'ic6', hubId: 'p_yiw', portId: 'p11', mode: 'TRUCK', transitTimeDays: 1 }, // Yiwu <-> Ningbo
+    { id: 'ic7', hubId: 'p_yiw', portId: 'p1', mode: 'TRUCK', transitTimeDays: 1 }, // Yiwu <-> Shanghai
 ];
 
 export const INITIAL_USERS: User[] = [
-  {
-    id: 'u1',
-    username: 'admin',
-    password: 'password', // Mock
-    role: 'ADMIN',
-    fullName: 'System Administrator',
-    lastLogin: new Date().toISOString()
-  },
-  {
-    id: 'u2',
-    username: 'user',
-    password: 'password',
-    role: 'USER',
-    fullName: 'Logistics Planner',
-    lastLogin: new Date(Date.now() - 86400000).toISOString()
-  },
   {
     id: 'u_sarath',
     username: 'sarath@swenlog.com',
@@ -219,11 +198,7 @@ export const INITIAL_USERS: User[] = [
 ];
 
 export const INITIAL_ACTIVITY_LOGS: ActivityLog[] = [
-  { id: 'log1', userId: 'u1', timestamp: new Date(Date.now() - 100000).toISOString(), action: 'LOGIN', details: 'System Administrator logged in' },
-  { id: 'log2', userId: 'u1', timestamp: new Date(Date.now() - 80000).toISOString(), action: 'UPDATE_SERVICE', details: 'Updated Service AE1' },
+  { id: 'log1', userId: 'u_sarath', timestamp: new Date(Date.now() - 100000).toISOString(), action: 'LOGIN', details: 'System Administrator logged in' },
 ];
 
-export const INITIAL_SEARCH_LOGS: SearchLog[] = [
-  { id: 'slog1', userId: 'u2', timestamp: new Date(Date.now() - 200000).toISOString(), polId: 'p1', podId: 'p3' },
-  { id: 'slog2', userId: null, timestamp: new Date(Date.now() - 500000).toISOString(), polId: 'p2', podId: 'p4' },
-];
+export const INITIAL_SEARCH_LOGS: SearchLog[] = [];

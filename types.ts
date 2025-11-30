@@ -1,4 +1,7 @@
 
+export type PortType = 'SEAPORT' | 'INLAND';
+export type TransportMode = 'RAIL' | 'TRUCK' | 'BARGE';
+
 export interface Carrier {
   id: string;
   name: string;
@@ -13,6 +16,7 @@ export interface Port {
   code: string;
   country: string;
   coordinates: [number, number]; // [longitude, latitude]
+  type: PortType;
 }
 
 export interface ServiceLeg {
@@ -39,6 +43,21 @@ export interface TransshipmentConnection {
   isActive: boolean;
 }
 
+export interface InlandConnection {
+  id: string;
+  hubId: string;      // The Inland Port ID
+  portId: string;     // The Seaport ID
+  mode: TransportMode;
+  transitTimeDays: number;
+}
+
+export interface InlandLeg {
+    origin: Port;
+    destination: Port;
+    mode: TransportMode;
+    transitTime: number;
+}
+
 export interface RouteSegment {
   service: Service;
   origin: Port;
@@ -49,10 +68,12 @@ export interface RouteSegment {
 
 export interface RouteResult {
   id: string;
+  preCarriage?: InlandLeg; // Inland -> Seaport
   segments: RouteSegment[];
+  onCarriage?: InlandLeg;  // Seaport -> Inland
   totalTransitTime: number;
   transshipmentPort?: Port;
-  type: 'DIRECT' | 'TRANSSHIPMENT';
+  type: 'DIRECT' | 'TRANSSHIPMENT' | 'INTERMODAL';
 }
 
 export interface PotentialConnection {

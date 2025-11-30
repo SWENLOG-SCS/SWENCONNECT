@@ -1,30 +1,36 @@
 
 import React, { useState } from 'react';
-import { Carrier, Port } from '../types';
-import { Anchor, Ship, Plus, Trash2, MapPin, Image as ImageIcon, Pencil, X, Save } from 'lucide-react';
+import { Carrier, Port, InlandConnection, TransportMode } from '../types';
+import { Anchor, Ship, Plus, Trash2, MapPin, Image as ImageIcon, Pencil, X, Save, Train, Truck } from 'lucide-react';
 
 interface MasterDataManagerProps {
   ports: Port[];
   carriers: Carrier[];
+  inlandConnections: InlandConnection[];
   onAddPort: (port: Port) => void;
   onUpdatePort: (port: Port) => void;
   onAddCarrier: (carrier: Carrier) => void;
   onUpdateCarrier: (carrier: Carrier) => void;
   onDeletePort: (id: string) => void;
   onDeleteCarrier: (id: string) => void;
+  onAddInlandConnection: (conn: InlandConnection) => void;
+  onDeleteInlandConnection: (id: string) => void;
 }
 
 const MasterDataManager: React.FC<MasterDataManagerProps> = ({ 
   ports, 
   carriers, 
+  inlandConnections,
   onAddPort, 
   onUpdatePort,
   onAddCarrier, 
   onUpdateCarrier,
   onDeletePort, 
-  onDeleteCarrier 
+  onDeleteCarrier,
+  onAddInlandConnection,
+  onDeleteInlandConnection
 }) => {
-  const [activeTab, setActiveTab] = useState<'carriers' | 'ports'>('carriers');
+  const [activeTab, setActiveTab] = useState<'carriers' | 'ports' | 'inland'>('carriers');
 
   // Carrier Form State
   const [editingCarrierId, setEditingCarrierId] = useState<string | null>(null);
@@ -40,111 +46,82 @@ const MasterDataManager: React.FC<MasterDataManagerProps> = ({
   const [portCountry, setPortCountry] = useState('');
   const [portLat, setPortLat] = useState<string>('');
   const [portLng, setPortLng] = useState<string>('');
+  const [portType, setPortType] = useState<'SEAPORT' | 'INLAND'>('SEAPORT');
+
+  // Inland Connection Form
+  const [inlandHubId, setInlandHubId] = useState('');
+  const [inlandPortId, setInlandPortId] = useState('');
+  const [inlandMode, setInlandMode] = useState<TransportMode>('RAIL');
+  const [inlandDays, setInlandDays] = useState(1);
 
   const resetCarrierForm = () => {
-    setCarrierName('');
-    setCarrierCode('');
-    setCarrierColor('#3b82f6');
-    setCarrierLogo('');
-    setEditingCarrierId(null);
+    setCarrierName(''); setCarrierCode(''); setCarrierColor('#3b82f6'); setCarrierLogo(''); setEditingCarrierId(null);
   };
 
   const resetPortForm = () => {
-    setPortName('');
-    setPortCode('');
-    setPortCountry('');
-    setPortLat('');
-    setPortLng('');
-    setEditingPortId(null);
+    setPortName(''); setPortCode(''); setPortCountry(''); setPortLat(''); setPortLng(''); setPortType('SEAPORT'); setEditingPortId(null);
   };
 
   const startEditingCarrier = (carrier: Carrier) => {
-    setEditingCarrierId(carrier.id);
-    setCarrierName(carrier.name);
-    setCarrierCode(carrier.code);
-    setCarrierColor(carrier.color);
-    setCarrierLogo(carrier.logo || '');
-    setActiveTab('carriers');
+    setEditingCarrierId(carrier.id); setCarrierName(carrier.name); setCarrierCode(carrier.code); setCarrierColor(carrier.color); setCarrierLogo(carrier.logo || ''); setActiveTab('carriers');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const startEditingPort = (port: Port) => {
-    setEditingPortId(port.id);
-    setPortName(port.name);
-    setPortCode(port.code);
-    setPortCountry(port.country);
-    // Coordinates are [lng, lat]
-    setPortLat(port.coordinates[1].toString());
-    setPortLng(port.coordinates[0].toString());
+    setEditingPortId(port.id); setPortName(port.name); setPortCode(port.code); setPortCountry(port.country);
+    setPortLat(port.coordinates[1].toString()); setPortLng(port.coordinates[0].toString());
+    setPortType(port.type);
     setActiveTab('ports');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSaveCarrier = () => {
     if (!carrierName || !carrierCode) return;
-    
-    const carrierData: Carrier = {
-      id: editingCarrierId || Math.random().toString(36).substr(2, 9),
-      name: carrierName,
-      code: carrierCode,
-      color: carrierColor,
-      logo: carrierLogo || undefined
-    };
-
-    if (editingCarrierId) {
-      onUpdateCarrier(carrierData);
-    } else {
-      onAddCarrier(carrierData);
-    }
+    const carrierData: Carrier = { id: editingCarrierId || Math.random().toString(36).substr(2, 9), name: carrierName, code: carrierCode, color: carrierColor, logo: carrierLogo || undefined };
+    if (editingCarrierId) onUpdateCarrier(carrierData); else onAddCarrier(carrierData);
     resetCarrierForm();
   };
 
   const handleSavePort = () => {
     if (!portName || !portCode || !portCountry || !portLat || !portLng) return;
-    
-    const lat = parseFloat(portLat);
-    const lng = parseFloat(portLng);
-
-    if (isNaN(lat) || isNaN(lng)) {
-        alert("Please enter valid numeric coordinates for Latitude and Longitude.");
-        return;
-    }
-    
-    const portData: Port = {
-      id: editingPortId || Math.random().toString(36).substr(2, 9),
-      name: portName,
-      code: portCode,
-      country: portCountry,
-      coordinates: [lng, lat]
-    };
-
-    if (editingPortId) {
-      onUpdatePort(portData);
-    } else {
-      onAddPort(portData);
-    }
+    const lat = parseFloat(portLat); const lng = parseFloat(portLng);
+    if (isNaN(lat) || isNaN(lng)) return alert("Invalid coordinates");
+    const portData: Port = { id: editingPortId || Math.random().toString(36).substr(2, 9), name: portName, code: portCode, country: portCountry, coordinates: [lng, lat], type: portType };
+    if (editingPortId) onUpdatePort(portData); else onAddPort(portData);
     resetPortForm();
   };
+
+  const handleAddConnection = () => {
+      if (!inlandHubId || !inlandPortId) return;
+      onAddInlandConnection({
+          id: Math.random().toString(36).substr(2, 9),
+          hubId: inlandHubId,
+          portId: inlandPortId,
+          mode: inlandMode,
+          transitTimeDays: inlandDays
+      });
+      setInlandHubId(''); setInlandPortId(''); setInlandDays(1);
+  };
+
+  const inlandHubs = ports.filter(p => p.type === 'INLAND');
+  const seaports = ports.filter(p => p.type === 'SEAPORT');
 
   return (
     <div className="p-6 max-w-6xl mx-auto h-full flex flex-col">
        <div className="flex justify-between items-center mb-6">
         <div>
             <h2 className="text-2xl font-bold text-slate-800">Master Data Manager</h2>
-            <p className="text-slate-500 text-sm">Configure the global network entities: Carriers and Ports.</p>
+            <p className="text-slate-500 text-sm">Configure Carriers, Ports, and Intermodal links.</p>
         </div>
         <div className="flex bg-slate-200 rounded-lg p-1">
-            <button 
-                onClick={() => setActiveTab('carriers')}
-                className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${activeTab === 'carriers' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-                <Ship size={16} /> Carriers ({carriers.length})
+            <button onClick={() => setActiveTab('carriers')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${activeTab === 'carriers' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>
+                <Ship size={16} /> Carriers
             </button>
-            <button 
-                onClick={() => setActiveTab('ports')}
-                className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${activeTab === 'ports' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-                <Anchor size={16} /> Ports ({ports.length})
+            <button onClick={() => setActiveTab('ports')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${activeTab === 'ports' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>
+                <Anchor size={16} /> Ports
+            </button>
+            <button onClick={() => setActiveTab('inland')} className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-all ${activeTab === 'inland' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}>
+                <Train size={16} /> Inland
             </button>
         </div>
       </div>
@@ -152,251 +129,136 @@ const MasterDataManager: React.FC<MasterDataManagerProps> = ({
       <div className="flex-1 overflow-y-auto pb-10">
           {activeTab === 'carriers' && (
               <div className="space-y-6">
-                  {/* Add/Edit Carrier Form */}
-                  <div className={`bg-white p-5 rounded-xl shadow-sm border ${editingCarrierId ? 'border-blue-200 ring-2 ring-blue-100' : 'border-slate-200'}`}>
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-bold text-slate-700 uppercase flex items-center gap-2">
-                            {editingCarrierId ? <Pencil size={16} className="text-blue-500"/> : <Plus size={16} className="text-blue-500"/>} 
-                            {editingCarrierId ? 'Edit Carrier' : 'Add New Carrier'}
-                        </h3>
-                        {editingCarrierId && (
-                           <button onClick={resetCarrierForm} className="text-slate-400 hover:text-slate-600 text-xs flex items-center gap-1">
-                             <X size={14}/> Cancel Edit
-                           </button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-                          <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Name</label>
-                              <input 
-                                  type="text" 
-                                  value={carrierName}
-                                  onChange={e => setCarrierName(e.target.value)}
-                                  placeholder="e.g. Evergreen"
-                                  className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                              />
-                          </div>
-                          <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Code</label>
-                              <input 
-                                  type="text" 
-                                  value={carrierCode}
-                                  onChange={e => setCarrierCode(e.target.value)}
-                                  placeholder="e.g. EMC"
-                                  className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                              />
-                          </div>
-                          <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Color</label>
-                              <div className="flex items-center gap-2">
-                                <input 
-                                    type="color" 
-                                    value={carrierColor}
-                                    onChange={e => setCarrierColor(e.target.value)}
-                                    className="w-8 h-9 p-0 border-0 rounded cursor-pointer"
-                                />
-                                <span className="text-xs text-slate-400 font-mono">{carrierColor}</span>
-                              </div>
-                          </div>
-                          <div className="md:col-span-2">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Logo URL</label>
-                              <div className="flex items-center gap-2">
-                                  {/* Logo Preview */}
-                                  <div className="w-10 h-10 border border-slate-200 rounded flex items-center justify-center bg-slate-50 overflow-hidden shrink-0">
-                                      {carrierLogo ? (
-                                          <img 
-                                            src={carrierLogo} 
-                                            alt="Preview" 
-                                            className="w-full h-full object-contain" 
-                                            onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
-                                          />
-                                      ) : (
-                                          <ImageIcon size={20} className="text-slate-300"/>
-                                      )}
-                                  </div>
-                                  <div className="flex-1 flex items-center gap-2 border border-slate-300 rounded p-2 bg-white">
-                                      <input 
-                                          type="text" 
-                                          value={carrierLogo}
-                                          onChange={e => setCarrierLogo(e.target.value)}
-                                          placeholder="https://example.com/logo.png"
-                                          className="w-full outline-none text-sm bg-transparent"
-                                      />
-                                  </div>
-                              </div>
-                          </div>
-                          <div className="md:col-span-1">
-                              <button 
-                                onClick={handleSaveCarrier}
-                                className={`w-full text-white py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${editingCarrierId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-700 hover:bg-slate-800'}`}
-                              >
-                                  {editingCarrierId ? <Save size={16}/> : <Plus size={16}/>}
-                                  {editingCarrierId ? 'Update' : 'Add'}
-                              </button>
-                          </div>
-                      </div>
-                  </div>
-
-                  {/* Carriers List */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {carriers.map(carrier => (
-                          <div key={carrier.id} className={`bg-white p-4 rounded-xl shadow-sm border flex items-center gap-4 transition-colors ${editingCarrierId === carrier.id ? 'border-blue-400 bg-blue-50' : 'border-slate-200'}`}>
-                              <div 
-                                className="w-12 h-12 rounded-lg flex items-center justify-center bg-slate-50 border border-slate-100 p-1"
-                              >
-                                  {carrier.logo ? (
-                                      <img src={carrier.logo} alt={carrier.name} className="w-full h-full object-contain" />
-                                  ) : (
-                                      <span 
-                                        className="w-full h-full rounded flex items-center justify-center text-white font-bold text-lg"
-                                        style={{ backgroundColor: carrier.color }}
-                                      >
-                                          {carrier.code[0]}
-                                      </span>
-                                  )}
-                              </div>
-                              <div className="flex-1">
-                                  <h4 className="font-bold text-slate-800">{carrier.name}</h4>
-                                  <div className="flex items-center gap-2">
-                                      <span className="text-xs bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 border border-slate-200">{carrier.code}</span>
-                                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: carrier.color }}></div>
-                                  </div>
-                              </div>
-                              <div className="flex gap-1">
-                                <button 
-                                  onClick={() => startEditingCarrier(carrier)}
-                                  className={`p-2 rounded ${editingCarrierId === carrier.id ? 'text-blue-600 bg-white shadow-sm' : 'text-slate-300 hover:text-blue-500 hover:bg-blue-50'}`}
-                                  title="Edit Carrier"
-                                >
-                                    <Pencil size={18} />
-                                </button>
-                                <button 
-                                  onClick={() => onDeleteCarrier(carrier.id)}
-                                  className="text-slate-300 hover:text-red-500 p-2 rounded hover:bg-red-50"
-                                  title="Delete Carrier"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                              </div>
-                          </div>
-                      ))}
-                  </div>
+                   <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                       <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                          <div className="md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase">Name</label><input className="w-full border p-2 rounded text-sm" value={carrierName} onChange={e=>setCarrierName(e.target.value)}/></div>
+                          <div className="md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase">Code</label><input className="w-full border p-2 rounded text-sm" value={carrierCode} onChange={e=>setCarrierCode(e.target.value)}/></div>
+                          <div className="md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase">Color</label><input type="color" className="w-full h-9 rounded" value={carrierColor} onChange={e=>setCarrierColor(e.target.value)}/></div>
+                          <div className="md:col-span-2"><label className="text-xs font-bold text-slate-500 uppercase">Logo</label><input className="w-full border p-2 rounded text-sm" value={carrierLogo} onChange={e=>setCarrierLogo(e.target.value)}/></div>
+                          <button onClick={handleSaveCarrier} className="bg-blue-600 text-white p-2 rounded text-sm font-bold md:col-span-1">{editingCarrierId ? 'Update' : 'Add'}</button>
+                       </div>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                       {carriers.map(c => (
+                           <div key={c.id} className="bg-white p-4 rounded shadow-sm border flex justify-between items-center">
+                               <div className="flex items-center gap-3">
+                                   {c.logo && <img src={c.logo} className="w-8 h-8 object-contain"/>}
+                                   <div><div className="font-bold text-sm">{c.name}</div><div className="text-xs text-slate-400">{c.code}</div></div>
+                               </div>
+                               <div className="flex gap-2">
+                                   <button onClick={()=>startEditingCarrier(c)}><Pencil size={16} className="text-slate-400 hover:text-blue-500"/></button>
+                                   <button onClick={()=>onDeleteCarrier(c.id)}><Trash2 size={16} className="text-slate-400 hover:text-red-500"/></button>
+                               </div>
+                           </div>
+                       ))}
+                   </div>
               </div>
           )}
 
           {activeTab === 'ports' && (
               <div className="space-y-6">
-                  {/* Add/Edit Port Form */}
-                  <div className={`bg-white p-5 rounded-xl shadow-sm border ${editingPortId ? 'border-blue-200 ring-2 ring-blue-100' : 'border-slate-200'}`}>
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-sm font-bold text-slate-700 uppercase flex items-center gap-2">
-                            {editingPortId ? <Pencil size={16} className="text-blue-500"/> : <Plus size={16} className="text-blue-500"/>} 
-                            {editingPortId ? 'Edit Port' : 'Add New Port'}
-                        </h3>
-                         {editingPortId && (
-                           <button onClick={resetPortForm} className="text-slate-400 hover:text-slate-600 text-xs flex items-center gap-1">
-                             <X size={14}/> Cancel Edit
-                           </button>
-                        )}
+                  {/* Port Form */}
+                  <div className={`bg-white p-5 rounded-xl shadow-sm border ${editingPortId ? 'border-blue-200' : 'border-slate-200'}`}>
+                      <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
+                          <div className="md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase">Name</label><input className="w-full border p-2 rounded text-sm" value={portName} onChange={e=>setPortName(e.target.value)}/></div>
+                          <div className="md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase">Code</label><input className="w-full border p-2 rounded text-sm" value={portCode} onChange={e=>setPortCode(e.target.value)}/></div>
+                          <div className="md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase">Country</label><input className="w-full border p-2 rounded text-sm" value={portCountry} onChange={e=>setPortCountry(e.target.value)}/></div>
+                          <div className="md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase">Lat</label><input type="number" className="w-full border p-2 rounded text-sm" value={portLat} onChange={e=>setPortLat(e.target.value)}/></div>
+                          <div className="md:col-span-1"><label className="text-xs font-bold text-slate-500 uppercase">Lng</label><input type="number" className="w-full border p-2 rounded text-sm" value={portLng} onChange={e=>setPortLng(e.target.value)}/></div>
+                          <div className="md:col-span-1">
+                              <label className="text-xs font-bold text-slate-500 uppercase">Type</label>
+                              <select className="w-full border p-2 rounded text-sm bg-white" value={portType} onChange={e=>setPortType(e.target.value as any)}>
+                                  <option value="SEAPORT">Seaport</option>
+                                  <option value="INLAND">Inland Hub</option>
+                              </select>
+                          </div>
+                          <button onClick={handleSavePort} className="bg-blue-600 text-white p-2 rounded text-sm font-bold md:col-span-1">{editingPortId ? 'Update' : 'Add'}</button>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      {ports.map(p => (
+                           <div key={p.id} className="bg-white p-4 rounded shadow-sm border flex justify-between items-start relative overflow-hidden">
+                               {p.type === 'INLAND' && <div className="absolute top-0 right-0 bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded-bl font-bold">INLAND</div>}
+                               <div>
+                                   <div className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                       {p.type === 'INLAND' ? <Train size={14} className="text-amber-500"/> : <Anchor size={14} className="text-blue-500"/>}
+                                       {p.name}
+                                   </div>
+                                   <div className="text-xs text-slate-500">{p.country}</div>
+                                   <div className="text-[10px] font-mono text-slate-400 mt-1">{p.code}</div>
+                               </div>
+                               <div className="flex flex-col gap-1 mt-4">
+                                   <button onClick={()=>startEditingPort(p)}><Pencil size={14} className="text-slate-300 hover:text-blue-500"/></button>
+                                   <button onClick={()=>onDeletePort(p.id)}><Trash2 size={14} className="text-slate-300 hover:text-red-500"/></button>
+                               </div>
+                           </div>
+                      ))}
+                  </div>
+              </div>
+          )}
+
+          {activeTab === 'inland' && (
+              <div className="space-y-6">
+                  <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                      <h3 className="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2"><Train size={16}/> Link Inland Hub to Seaport</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                           <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Name</label>
-                              <input 
-                                  type="text" 
-                                  value={portName}
-                                  onChange={e => setPortName(e.target.value)}
-                                  placeholder="e.g. Barcelona"
-                                  className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                              />
-                          </div>
-                          <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Code</label>
-                              <input 
-                                  type="text" 
-                                  value={portCode}
-                                  onChange={e => setPortCode(e.target.value)}
-                                  placeholder="e.g. ESBCN"
-                                  className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                              />
-                          </div>
-                           <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Country</label>
-                              <input 
-                                  type="text" 
-                                  value={portCountry}
-                                  onChange={e => setPortCountry(e.target.value)}
-                                  placeholder="e.g. Spain"
-                                  className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                              />
-                          </div>
-                           <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Latitude</label>
-                              <input 
-                                  type="number" 
-                                  value={portLat}
-                                  onChange={e => setPortLat(e.target.value)}
-                                  placeholder="41.38"
-                                  className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                              />
-                          </div>
-                           <div className="md:col-span-1">
-                              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Longitude</label>
-                              <input 
-                                  type="number" 
-                                  value={portLng}
-                                  onChange={e => setPortLng(e.target.value)}
-                                  placeholder="2.17"
-                                  className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                              />
+                              <label className="text-xs font-bold text-slate-500 uppercase">Inland Hub</label>
+                              <select className="w-full border p-2 rounded text-sm bg-white" value={inlandHubId} onChange={e=>setInlandHubId(e.target.value)}>
+                                  <option value="">Select Hub...</option>
+                                  {inlandHubs.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                              </select>
                           </div>
                           <div className="md:col-span-1">
-                              <button 
-                                onClick={handleSavePort}
-                                className={`w-full text-white py-2 rounded text-sm font-medium transition-colors flex items-center justify-center gap-2 ${editingPortId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-700 hover:bg-slate-800'}`}
-                              >
-                                  {editingPortId ? <Save size={16}/> : <Plus size={16}/>}
-                                  {editingPortId ? 'Update Port' : 'Add Port'}
-                              </button>
+                              <label className="text-xs font-bold text-slate-500 uppercase">Gateway Seaport</label>
+                              <select className="w-full border p-2 rounded text-sm bg-white" value={inlandPortId} onChange={e=>setInlandPortId(e.target.value)}>
+                                  <option value="">Select Port...</option>
+                                  {seaports.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                              </select>
                           </div>
+                          <div className="md:col-span-1">
+                              <label className="text-xs font-bold text-slate-500 uppercase">Mode</label>
+                              <select className="w-full border p-2 rounded text-sm bg-white" value={inlandMode} onChange={e=>setInlandMode(e.target.value as any)}>
+                                  <option value="RAIL">Rail</option>
+                                  <option value="TRUCK">Truck</option>
+                                  <option value="BARGE">Barge</option>
+                              </select>
+                          </div>
+                          <div className="md:col-span-1">
+                              <label className="text-xs font-bold text-slate-500 uppercase">Transit Days</label>
+                              <input type="number" className="w-full border p-2 rounded text-sm" value={inlandDays} onChange={e=>setInlandDays(parseInt(e.target.value))}/>
+                          </div>
+                          <button onClick={handleAddConnection} className="bg-emerald-600 text-white p-2 rounded text-sm font-bold md:col-span-1 hover:bg-emerald-700">Add Link</button>
                       </div>
                   </div>
 
-                  {/* Ports List */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {ports.map(port => (
-                          <div key={port.id} className={`bg-white p-4 rounded-xl shadow-sm border flex justify-between items-start transition-colors ${editingPortId === port.id ? 'border-blue-400 bg-blue-50' : 'border-slate-200'}`}>
-                              <div>
-                                  <div className="flex items-center gap-2 mb-1">
-                                      <MapPin size={14} className="text-slate-400"/>
-                                      <h4 className="font-bold text-slate-800 text-sm">{port.name}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {inlandConnections.map(ic => {
+                          const hub = ports.find(p => p.id === ic.hubId);
+                          const port = ports.find(p => p.id === ic.portId);
+                          if (!hub || !port) return null;
+                          return (
+                              <div key={ic.id} className="bg-white p-4 rounded shadow-sm border border-slate-200 flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                      <div className="flex flex-col items-center">
+                                          <span className="font-bold text-sm text-slate-700">{hub.code}</span>
+                                          <span className="text-[10px] text-slate-400">HUB</span>
+                                      </div>
+                                      <div className="flex flex-col items-center px-2">
+                                          {ic.mode === 'RAIL' ? <Train size={16} className="text-slate-400"/> : <Truck size={16} className="text-slate-400"/>}
+                                          <div className="h-0.5 w-8 bg-slate-300 my-0.5"></div>
+                                          <span className="text-[10px] font-bold text-slate-500">{ic.transitTimeDays}d</span>
+                                      </div>
+                                      <div className="flex flex-col items-center">
+                                          <span className="font-bold text-sm text-slate-700">{port.code}</span>
+                                          <span className="text-[10px] text-slate-400">PORT</span>
+                                      </div>
                                   </div>
-                                  <div className="text-xs text-slate-500 pl-5 mb-1">{port.country}</div>
-                                  <span className="text-[10px] font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200 ml-5 block w-fit">
-                                      {port.code}
-                                  </span>
-                                  <div className="text-[10px] text-slate-300 pl-5 mt-1 font-mono">
-                                      {port.coordinates[1].toFixed(2)}, {port.coordinates[0].toFixed(2)}
-                                  </div>
+                                  <button onClick={()=>onDeleteInlandConnection(ic.id)} className="text-slate-300 hover:text-red-500"><Trash2 size={16}/></button>
                               </div>
-                              <div className="flex flex-col gap-1">
-                                <button 
-                                    onClick={() => startEditingPort(port)}
-                                    className={`p-1.5 rounded ${editingPortId === port.id ? 'text-blue-600 bg-white shadow-sm' : 'text-slate-300 hover:text-blue-500 hover:bg-blue-50'}`}
-                                    title="Edit Port"
-                                  >
-                                      <Pencil size={16} />
-                                  </button>
-                                <button 
-                                  onClick={() => onDeletePort(port.id)}
-                                  className="text-slate-300 hover:text-red-500 p-1.5 rounded hover:bg-red-50"
-                                  title="Delete Port"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                              </div>
-                          </div>
-                      ))}
+                          )
+                      })}
                   </div>
               </div>
           )}
